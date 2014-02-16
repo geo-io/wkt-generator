@@ -11,7 +11,7 @@ class MyExtractor implements GeoIO\Extractor
 {
     public function extractType($geometry)
     {
-        if (instanceof MyPoint) {
+        if ($geometry instanceof MyPoint) {
             return self::TYPE_POINT;
         }
 
@@ -36,7 +36,7 @@ $generator = new GeoIO\WKT\Generator($extractor);
 
 echo $generator->generate(new MyPoint(1, 2));
 // Outputs:
-// POINT(1, 2);
+// POINT(1 2);
 ```
 
 Installation
