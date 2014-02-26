@@ -206,10 +206,10 @@ class Generator
                 return $this->generateLineString($geometry);
             case Extractor::TYPE_POLYGON:
                 return $this->generatePolygon($geometry);
-            case Extractor::TYPE_MULTILINESTRING:
-                return $this->generateMultiLineString($geometry);
             case Extractor::TYPE_MULTIPOINT:
                 return $this->generateMultiPoint($geometry);
+            case Extractor::TYPE_MULTILINESTRING:
+                return $this->generateMultiLineString($geometry);
             case Extractor::TYPE_MULTIPOLYGON:
                 return $this->generateMultiPolygon($geometry);
             default:
