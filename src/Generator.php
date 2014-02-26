@@ -50,8 +50,6 @@ class Generator
 
     private $extractor;
 
-    private $supportsZ;
-    private $supportsM;
     private $sprintfFormat = '%F';
 
     private $options = array(
@@ -127,20 +125,6 @@ class Generator
             }
 
             $dimension = $this->extractor->extractDimension($geometry);
-            $this->supportsZ = false;
-            $this->supportsM = false;
-
-            if (self::FORMAT_WKT11_STRICT !== $this->options['format'] &&
-                (Dimension::DIMENSION_4D === $dimension ||
-                 Dimension::DIMENSION_3DZ === $dimension)) {
-                $this->supportsZ = true;
-            }
-
-            if (self::FORMAT_WKT11_STRICT !== $this->options['format'] &&
-                (Dimension::DIMENSION_4D === $dimension ||
-                 Dimension::DIMENSION_3DZ === $dimension)) {
-                $this->supportsZ = true;
-            }
 
             $str .= $this->generateGeometry($geometry, $dimension);
 
