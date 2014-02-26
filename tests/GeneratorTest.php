@@ -61,7 +61,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $extractor = $this->getPointExtractorMock(
             $point,
             Dimension::DIMENSION_3DM,
-            $this->coords(1, 2, 3)
+            $this->coords(1, 2, null, 3)
         );
 
         $expected = sprintf('Point(%F %F %F)', 1, 2, 3);
@@ -204,7 +204,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $extractor = $this->getPointExtractorMock(
             $point,
             Dimension::DIMENSION_3DM,
-            $this->coords(1, 2, 3)
+            $this->coords(1, 2, null, 3)
         );
 
         $expected = sprintf('Point M (%F %F %F)', 1, 2, 3);
@@ -294,7 +294,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $extractor = $this->getPointExtractorMock(
             $point,
             Dimension::DIMENSION_3DM,
-            $this->coords(1, 2, 3)
+            $this->coords(1, 2, null, 3)
         );
 
         $expected = sprintf('PointM(%F %F %F)', 1, 2, 3);
@@ -972,24 +972,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         ;
 
         $extractor
-            ->shouldReceive('extractDimension')
-            ->once()
-            ->with($point)
-            ->andReturn(Dimension::DIMENSION_2D)
-        ;
-
-        $extractor
             ->shouldReceive('extractType')
             ->once()
             ->with($lineString)
             ->andReturn(Extractor::TYPE_LINESTRING)
-        ;
-
-        $extractor
-            ->shouldReceive('extractDimension')
-            ->once()
-            ->with($lineString)
-            ->andReturn(Dimension::DIMENSION_2D)
         ;
 
         $extractor

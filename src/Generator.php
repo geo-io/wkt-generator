@@ -146,13 +146,8 @@ class Generator
     private function generateGeometry($geometry, $dimension)
     {
         $type = $this->extractor->extractType($geometry);
-        $data = $this->generateGeometryData($type, $geometry);
+        $data = $this->generateGeometryData($type, $dimension, $geometry);
 
-        return $this->addDimensionMarker($dimension, $type, $data);
-    }
-
-    private function addDimensionMarker($dimension, $type, $data)
-    {
         $str = $type;
 
         if (self::FORMAT_WKT12 === $this->options['format']) {
@@ -181,144 +176,27 @@ class Generator
         return $str . $data;
     }
 
-    private function generateGeometryData($type, $geometry)
+    private function generateGeometryData($type, $dimension, $geometry)
     {
         switch ($type) {
             case Extractor::TYPE_POINT:
-                return $this->generatePoint($geometry);
+                return $this->generatePoint($geometry, $dimension);
             case Extractor::TYPE_LINESTRING:
-                return $this->generateLineString($geometry);
+                return $this->generateLineString($geometry, $dimension);
             case Extractor::TYPE_POLYGON:
-                return $this->generatePolygon($geometry);
+                return $this->generatePolygon($geometry, $dimension);
             case Extractor::TYPE_MULTIPOINT:
-                return $this->generateMultiPoint($geometry);
+                return $this->generateMultiPoint($geometry, $dimension);
             case Extractor::TYPE_MULTILINESTRING:
-                return $this->generateMultiLineString($geometry);
+                return $this->generateMultiLineString($geometry, $dimension);
             case Extractor::TYPE_MULTIPOLYGON:
-                return $this->generateMultiPolygon($geometry);
+                return $this->generateMultiPolygon($geometry, $dimension);
             default:
-                return $this->generateGeometryCollection($geometry);
+                return $this->generateGeometryCollection($geometry, $dimension);
         }
     }
 
-    private function generateGeometryCollection($geometryCollection)
-    {
-        $geometries = $this->extractor->extractGeometriesFromGeometryCollection($geometryCollection);
-
-        $parts = array();
-
-        foreach ($geometries as $geometry) {
-            $parts[] = $this->generateGeometry(
-                $geometry,
-                $this->extractor->extractDimension($geometry)
-            );
-        }
-
-        if (!$parts) {
-            return 'EMPTY';
-        }
-
-        return sprintf('(%s)', implode(', ', $parts));
-    }
-
-    private function generateMultiPolygon($multiPolygon)
-    {
-        $polygons = $this->extractor->extractPolygonsFromMultiPolygon($multiPolygon);
-
-        $parts = array();
-
-        foreach ($polygons as $polygon) {
-            $parts[] = $this->generatePolygon($polygon);
-        }
-
-        if (!$parts) {
-            return 'EMPTY';
-        }
-
-        return sprintf('(%s)', implode(', ', $parts));
-    }
-
-    private function generateMultiLineString($multiLineString)
-    {
-        $lineStrings = $this->extractor->extractLineStringsFromMultiLineString($multiLineString);
-
-        $parts = array();
-
-        foreach ($lineStrings as $lineString) {
-            $parts[] = $this->generateLineString($lineString);
-        }
-
-        if (!$parts) {
-            return 'EMPTY';
-        }
-
-        return sprintf('(%s)', implode(', ', $parts));
-    }
-
-    private function generateMultiPoint($multiPoint)
-    {
-        $points = $this->extractor->extractPointsFromMultiPoint($multiPoint);
-
-        $parts = array();
-
-        foreach ($points as $point) {
-            $parts[] = $this->generatePoint($point);
-        }
-
-        if (!$parts) {
-            return 'EMPTY';
-        }
-
-        return sprintf('(%s)', implode(', ', $parts));
-    }
-
-    private function generatePolygon($polygon)
-    {
-        $lineStrings = $this->extractor->extractLineStringsFromPolygon($polygon);
-
-        $parts = array();
-
-        foreach ($lineStrings as $lineString) {
-            $parts[] = $this->generateLineString($lineString);
-        }
-
-        if (!$parts) {
-            return 'EMPTY';
-        }
-
-        return sprintf('(%s)', implode(', ', $parts));
-    }
-
-    private function generateLineString($lineString)
-    {
-        $points = $this->extractor->extractPointsFromLineString($lineString);
-
-        $parts = array();
-
-        foreach ($points as $point) {
-            $coordinates = $this->extractor->extractCoordinatesFromPoint($point);
-            $parts[] = $this->generateCoordinates($coordinates);
-        }
-
-        if (!$parts) {
-            return 'EMPTY';
-        }
-
-        return sprintf('(%s)', implode(', ', $parts));
-    }
-
-    private function generatePoint($point)
-    {
-        $coordinates = $this->extractor->extractCoordinatesFromPoint($point);
-
-        if (!$coordinates) {
-            return 'EMPTY';
-        }
-
-        return sprintf('(%s)', $this->generateCoordinates($coordinates));
-    }
-
-    private function generateCoordinates(array $coordinates)
+    private function generateCoordinates(array $coordinates, $dimension)
     {
         $x = isset($coordinates['x']) ? $coordinates['x'] : 0;
         $y = isset($coordinates['y']) ? $coordinates['y'] : 0;
@@ -326,15 +204,127 @@ class Generator
         $str = sprintf($this->sprintfFormat . ' ' . $this->sprintfFormat, $x, $y);
 
         if (self::FORMAT_WKT11_STRICT !== $this->options['format'] &&
-            isset($coordinates['z'])) {
-            $str .= ' ' . sprintf($this->sprintfFormat, $coordinates['z']);
+            (Dimension::DIMENSION_4D === $dimension ||
+             Dimension::DIMENSION_3DZ === $dimension)) {
+            $z = isset($coordinates['z']) ? $coordinates['z'] : 0;
+            $str .= ' ' . sprintf($this->sprintfFormat, $z);
         }
 
         if (self::FORMAT_WKT11_STRICT !== $this->options['format'] &&
-            isset($coordinates['m'])) {
-            $str .= ' ' . sprintf($this->sprintfFormat, $coordinates['m']);
+            (Dimension::DIMENSION_4D === $dimension ||
+             Dimension::DIMENSION_3DM === $dimension)) {
+            $m = isset($coordinates['m']) ? $coordinates['m'] : 0;
+            $str .= ' ' . sprintf($this->sprintfFormat, $m);
         }
 
         return $str;
+    }
+
+    private function generatePoint($point, $dimension)
+    {
+        $coordinates = $this->extractor->extractCoordinatesFromPoint($point);
+
+        if (!$coordinates) {
+            return 'EMPTY';
+        }
+
+        return sprintf('(%s)', $this->generateCoordinates($coordinates, $dimension));
+    }
+
+    private function generateLineString($lineString, $dimension)
+    {
+        $points = $this->extractor->extractPointsFromLineString($lineString);
+
+        $parts = array();
+        foreach ($points as $point) {
+            $coordinates = $this->extractor->extractCoordinatesFromPoint($point);
+            $parts[] = $this->generateCoordinates($coordinates, $dimension);
+        }
+
+        if (!$parts) {
+            return 'EMPTY';
+        }
+
+        return sprintf('(%s)', implode(', ', $parts));
+    }
+
+    private function generatePolygon($polygon, $dimension)
+    {
+        $lineStrings = $this->extractor->extractLineStringsFromPolygon($polygon);
+
+        $parts = array();
+        foreach ($lineStrings as $lineString) {
+            $parts[] = $this->generateLineString($lineString, $dimension);
+        }
+
+        if (!$parts) {
+            return 'EMPTY';
+        }
+
+        return sprintf('(%s)', implode(', ', $parts));
+    }
+
+    private function generateMultiPoint($multiPoint, $dimension)
+    {
+        $points = $this->extractor->extractPointsFromMultiPoint($multiPoint);
+
+        $parts = array();
+        foreach ($points as $point) {
+            $parts[] = $this->generatePoint($point, $dimension);
+        }
+
+        if (!$parts) {
+            return 'EMPTY';
+        }
+
+        return sprintf('(%s)', implode(', ', $parts));
+    }
+
+    private function generateMultiLineString($multiLineString, $dimension)
+    {
+        $lineStrings = $this->extractor->extractLineStringsFromMultiLineString($multiLineString);
+
+        $parts = array();
+        foreach ($lineStrings as $lineString) {
+            $parts[] = $this->generateLineString($lineString, $dimension);
+        }
+
+        if (!$parts) {
+            return 'EMPTY';
+        }
+
+        return sprintf('(%s)', implode(', ', $parts));
+    }
+
+    private function generateMultiPolygon($multiPolygon, $dimension)
+    {
+        $polygons = $this->extractor->extractPolygonsFromMultiPolygon($multiPolygon);
+
+        $parts = array();
+        foreach ($polygons as $polygon) {
+            $parts[] = $this->generatePolygon($polygon, $dimension);
+        }
+
+        if (!$parts) {
+            return 'EMPTY';
+        }
+
+        return sprintf('(%s)', implode(', ', $parts));
+    }
+
+    private function generateGeometryCollection($geometryCollection, $dimension)
+    {
+        $geometries = $this->extractor->extractGeometriesFromGeometryCollection($geometryCollection);
+
+        $parts = array();
+        foreach ($geometries as $geometry) {
+            $parts[] = $this->generateGeometry($geometry, $dimension);
+        }
+
+        if (!$parts) {
+            return 'EMPTY';
+        }
+
+        return sprintf('(%s)', implode(', ', $parts));
     }
 }
