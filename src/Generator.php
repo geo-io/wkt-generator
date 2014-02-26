@@ -138,7 +138,7 @@ class Generator
 
             if (self::FORMAT_WKT11_STRICT !== $this->options['format'] &&
                 (Dimension::DIMENSION_4D === $dimension ||
-                    Dimension::DIMENSION_3DZ === $dimension)) {
+                 Dimension::DIMENSION_3DZ === $dimension)) {
                 $this->supportsZ = true;
             }
 
