@@ -667,7 +667,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
     public function testMultiLineString()
     {
-        $polygon = new \stdClass();
+        $multiLineString = new \stdClass();
         $lineString1 = new \stdClass();
         $lineString2 = new \stdClass();
         $lineString3 = new \stdClass();
@@ -686,21 +686,21 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $extractor
             ->shouldReceive('extractType')
             ->once()
-            ->with($polygon)
+            ->with($multiLineString)
             ->andReturn(Extractor::TYPE_MULTILINESTRING)
         ;
 
         $extractor
             ->shouldReceive('extractDimension')
             ->once()
-            ->with($polygon)
+            ->with($multiLineString)
             ->andReturn(Dimension::DIMENSION_2D)
         ;
 
         $extractor
             ->shouldReceive('extractLineStringsFromMultiLineString')
             ->once()
-            ->with($polygon)
+            ->with($multiLineString)
             ->andReturn(array($lineString1, $lineString2, $lineString3))
         ;
 
@@ -746,39 +746,39 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         $generator = new Generator($extractor);
 
-        $this->assertSame($expected, $generator->generate($polygon));
+        $this->assertSame($expected, $generator->generate($multiLineString));
     }
 
     public function testMultiLineStringEmpty()
     {
-        $polygon = new \stdClass();
+        $multiLineString = new \stdClass();
 
         $extractor = Mockery::mock('GeoIO\\Extractor');
 
         $extractor
             ->shouldReceive('extractType')
             ->once()
-            ->with($polygon)
+            ->with($multiLineString)
             ->andReturn(Extractor::TYPE_MULTILINESTRING)
         ;
 
         $extractor
             ->shouldReceive('extractDimension')
             ->once()
-            ->with($polygon)
+            ->with($multiLineString)
             ->andReturn(Dimension::DIMENSION_2D)
         ;
 
         $extractor
             ->shouldReceive('extractLineStringsFromMultiLineString')
             ->once()
-            ->with($polygon)
+            ->with($multiLineString)
             ->andReturn(array())
         ;
 
         $generator = new Generator($extractor);
 
-        $this->assertSame('MultiLineString EMPTY', $generator->generate($polygon));
+        $this->assertSame('MultiLineString EMPTY', $generator->generate($multiLineString));
     }
 
     public function testMultiPolygon()
@@ -1114,7 +1114,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    protected function getPointExtractorMock($point, $dimesion, $coords, $srid = null)
+    protected function getPointExtractorMock($point, $dimension, $coords, $srid = null)
     {
         $extractor = Mockery::mock('GeoIO\\Extractor');
 
@@ -1129,7 +1129,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             ->shouldReceive('extractDimension')
             ->once()
             ->with($point)
-            ->andReturn($dimesion)
+            ->andReturn($dimension)
         ;
 
         $extractor
