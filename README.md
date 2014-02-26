@@ -36,7 +36,7 @@ $generator = new GeoIO\WKT\Generator($extractor);
 
 echo $generator->generate(new MyPoint(1, 2));
 // Outputs:
-// POINT(1 2);
+// POINT(1 2)
 ```
 
 Installation
