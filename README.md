@@ -2,7 +2,7 @@ Geo I/O WKT Generator
 =====================
 
 [![Build Status](https://travis-ci.org/geo-io/wkt-generator.svg?branch=master)](https://travis-ci.org/geo-io/wkt-generator)
-[![Coverage Status](https://img.shields.io/coveralls/geo-io/wkt-generator.svg)](https://coveralls.io/r/geo-io/wkt-generator)
+[![Coverage Status](https://img.shields.io/coveralls/geo-io/wkt-generator.svg?style=flat)](https://coveralls.io/r/geo-io/wkt-generator)
 
 Generates [Well-known text (WKT)](http://en.wikipedia.org/wiki/Well-known_text)
 representations from geometric objects.
