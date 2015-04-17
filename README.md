@@ -47,12 +47,8 @@ Install [through composer](http://getcomposer.org). Check the
 [packagist page](https://packagist.org/packages/geo-io/wkt-generator) for all
 available versions.
 
-```json
-{
-    "require": {
-        "geo-io/wkt-generator": "0.1.*@dev"
-    }
-}
+```bash
+composer require geo-io/wkt-generator
 ```
 
 License
