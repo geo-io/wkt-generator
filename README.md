@@ -33,7 +33,7 @@ class MyExtractor implements GeoIO\Extractor
 }
 
 $extractor = MyExtractor();
-$generator = new GeoIO\WKT\Generator($extractor);
+$generator = new GeoIO\WKT\Generator\Generator($extractor);
 
 echo $generator->generate(new MyPoint(1, 2));
 // Outputs:
