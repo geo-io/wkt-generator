@@ -384,7 +384,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             )
         ;
 
-        $expected = sprintf('LineString(%F %F, %F %F, %F %F)', 1, 2, 2, 2, 1, 1);
+        $expected = sprintf(
+            'LineString(%F %F, %F %F, %F %F)',
+            1, 2, 2, 2, 1, 1
+        );
 
         $generator = new Generator($extractor);
 
@@ -420,7 +423,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         $generator = new Generator($extractor);
 
-        $this->assertSame('LineString EMPTY', $generator->generate($lineString));
+        $this->assertSame(
+            'LineString EMPTY',
+            $generator->generate($lineString)
+        );
     }
 
     public function testPolygon()
@@ -471,7 +477,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             )
         ;
 
-        $expected = sprintf('Polygon((%F %F, %F %F, %F %F))', 1, 2, 2, 2, 1, 1);
+        $expected = sprintf(
+            'Polygon((%F %F, %F %F, %F %F))',
+            1, 2, 2, 2, 1, 1
+        );
 
         $generator = new Generator($extractor);
 
@@ -547,7 +556,11 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             )
         ;
 
-        $expected = sprintf('Polygon((%F %F, %F %F, %F %F, %F %F, %F %F), (%F %F, %F %F, %F %F, %F %F))', 0, 0, 10, 0, 10, 10, 0, 10, 0, 0, 1, 1, 2, 2, 3, 1, 1, 1);
+        $expected = sprintf(
+            'Polygon((%F %F, %F %F, %F %F, %F %F, %F %F), (%F %F, %F %F, %F %F, %F %F))',
+            0, 0, 10, 0, 10, 10, 0, 10, 0, 0,
+            1, 1, 2, 2, 3, 1, 1, 1
+        );
 
         $generator = new Generator($extractor);
 
@@ -893,7 +906,12 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             )
         ;
 
-        $expected = sprintf('MultiPolygon(((%F %F, %F %F, %F %F, %F %F, %F %F), (%F %F, %F %F, %F %F, %F %F)), EMPTY, ((%F %F, %F %F, %F %F, %F %F, %F %F)))', 0, 0, 10, 0, 10, 10, 0, 10, 0, 0, 1, 1, 2, 2, 3, 1, 1, 1, 20, 20, 30, 20, 30, 30, 20, 30, 20, 20);
+        $expected = sprintf(
+            'MultiPolygon(((%F %F, %F %F, %F %F, %F %F, %F %F), (%F %F, %F %F, %F %F, %F %F)), EMPTY, ((%F %F, %F %F, %F %F, %F %F, %F %F)))',
+            0, 0, 10, 0, 10, 10, 0, 10, 0, 0,
+            1, 1, 2, 2, 3, 1, 1, 1,
+            20, 20, 30, 20, 30, 30, 20, 30, 20, 20
+        );
 
         $generator = new Generator($extractor);
 
@@ -929,7 +947,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         $generator = new Generator($extractor);
 
-        $this->assertSame('MultiPolygon EMPTY', $generator->generate($multiPolygon));
+        $this->assertSame(
+            'MultiPolygon EMPTY',
+            $generator->generate($multiPolygon)
+        );
     }
 
     public function testGeometryCollecton()
@@ -997,7 +1018,11 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             )
         ;
 
-        $expected = sprintf('GeometryCollection(Point(%F %F), LineString(%F %F, %F %F, %F %F))', -1, -2, 1, 2, 3, 4, 5, 6);
+        $expected = sprintf(
+            'GeometryCollection(Point(%F %F), LineString(%F %F, %F %F, %F %F))',
+            -1, -2,
+            1, 2, 3, 4, 5, 6
+        );
 
         $generator = new Generator($extractor);
 
@@ -1033,12 +1058,17 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         $generator = new Generator($extractor);
 
-        $this->assertSame('GeometryCollection EMPTY', $generator->generate($geometryCollection));
+        $this->assertSame(
+            'GeometryCollection EMPTY',
+            $generator->generate($geometryCollection)
+        );
     }
 
     public function testConstructorShouldThrowExceptionForInvalidFormatOption()
     {
-        $this->setExpectedException('GeoIO\\WKT\Generator\\Exception\\InvalidOptionException');
+        $this->setExpectedException(
+            'GeoIO\\WKT\Generator\\Exception\\InvalidOptionException'
+        );
 
         new Generator($extractor = Mockery::mock('GeoIO\\Extractor'), array(
             'format' => 'foo'
@@ -1047,7 +1077,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorShouldThrowExceptionForInvalidCaseOption()
     {
-        $this->setExpectedException('GeoIO\\WKT\Generator\\Exception\\InvalidOptionException');
+        $this->setExpectedException(
+            'GeoIO\\WKT\Generator\\Exception\\InvalidOptionException'
+        );
 
         new Generator($extractor = Mockery::mock('GeoIO\\Extractor'), array(
             'case' => 'foo'
@@ -1074,7 +1106,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
     public function testGenerateShouldCatchExtractorExceptions()
     {
-        $this->setExpectedException('GeoIO\\WKT\Generator\\Exception\\GeneratorException');
+        $this->setExpectedException(
+            'GeoIO\\WKT\Generator\\Exception\\GeneratorException'
+        );
 
         $extractor = Mockery::mock('GeoIO\\Extractor');
 
@@ -1100,8 +1134,12 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    protected function getPointExtractorMock($point, $dimension, $coords, $srid = null)
-    {
+    protected function getPointExtractorMock(
+        $point,
+        $dimension,
+        $coords,
+        $srid = null
+    ) {
         $extractor = Mockery::mock('GeoIO\\Extractor');
 
         $extractor

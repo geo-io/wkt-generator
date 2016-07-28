@@ -85,7 +85,10 @@ class Generator
             }
         }
 
-        if (isset($options['emit_srid']) && self::FORMAT_EWKT === $this->options['format']) {
+        if (
+            isset($options['emit_srid']) &&
+            self::FORMAT_EWKT === $this->options['format']
+        ) {
             $this->options['emit_srid'] = (bool) $options['emit_srid'];
         }
 
@@ -110,7 +113,10 @@ class Generator
         }
 
         if (isset($options['float_precision'])) {
-            $this->sprintfFormat = sprintf('%%.%dF', (int) $options['float_precision']);
+            $this->sprintfFormat = sprintf(
+                '%%.%dF',
+                (int) $options['float_precision']
+            );
         }
     }
 
@@ -119,8 +125,10 @@ class Generator
         try {
             $str = '';
 
-            if ($this->options['emit_srid'] &&
-                null !== ($srid = $this->extractor->extractSrid($geometry))) {
+            if (
+                $this->options['emit_srid'] &&
+                null !== ($srid = $this->extractor->extractSrid($geometry))
+            ) {
                 $str .= sprintf('SRID=%d;', $srid);
             }
 
@@ -139,7 +147,11 @@ class Generator
 
             return $str;
         } catch (\Exception $e) {
-            throw new GeneratorException('Generation failed: ' . $e->getMessage(), 0, $e);
+            throw new GeneratorException(
+                'Generation failed: ' . $e->getMessage(),
+                0,
+                $e
+            );
         }
     }
 
@@ -201,18 +213,32 @@ class Generator
         $x = isset($coordinates['x']) ? $coordinates['x'] : 0;
         $y = isset($coordinates['y']) ? $coordinates['y'] : 0;
 
-        $str = sprintf($this->sprintfFormat . ' ' . $this->sprintfFormat, $x, $y);
+        $str = sprintf(
+            $this->sprintfFormat . ' ' . $this->sprintfFormat,
+            $x,
+            $y
+        );
 
-        if (self::FORMAT_WKT11_STRICT !== $this->options['format'] &&
-            (Dimension::DIMENSION_4D === $dimension ||
-             Dimension::DIMENSION_3DZ === $dimension)) {
+        if (
+            (
+                Dimension::DIMENSION_4D === $dimension ||
+                Dimension::DIMENSION_3DZ === $dimension
+            ) &&
+            self::FORMAT_WKT11_STRICT !== $this->options['format']
+
+        ) {
             $z = isset($coordinates['z']) ? $coordinates['z'] : 0;
             $str .= ' ' . sprintf($this->sprintfFormat, $z);
         }
 
-        if (self::FORMAT_WKT11_STRICT !== $this->options['format'] &&
-            (Dimension::DIMENSION_4D === $dimension ||
-             Dimension::DIMENSION_3DM === $dimension)) {
+        if (
+            (
+                Dimension::DIMENSION_4D === $dimension ||
+                Dimension::DIMENSION_3DM === $dimension
+            ) &&
+            self::FORMAT_WKT11_STRICT !== $this->options['format']
+
+        ) {
             $m = isset($coordinates['m']) ? $coordinates['m'] : 0;
             $str .= ' ' . sprintf($this->sprintfFormat, $m);
         }
@@ -222,22 +248,32 @@ class Generator
 
     private function generatePoint($point, $dimension)
     {
-        $coordinates = $this->extractor->extractCoordinatesFromPoint($point);
+        $coordinates = $this->extractor->extractCoordinatesFromPoint(
+            $point
+        );
 
         if (!$coordinates) {
             return 'EMPTY';
         }
 
-        return sprintf('(%s)', $this->generateCoordinates($coordinates, $dimension));
+        return sprintf(
+            '(%s)',
+            $this->generateCoordinates($coordinates, $dimension)
+        );
     }
 
     private function generateLineString($lineString, $dimension)
     {
-        $points = $this->extractor->extractPointsFromLineString($lineString);
+        $points = $this->extractor->extractPointsFromLineString(
+            $lineString
+        );
 
         $parts = array();
         foreach ($points as $point) {
-            $coordinates = $this->extractor->extractCoordinatesFromPoint($point);
+            $coordinates = $this->extractor->extractCoordinatesFromPoint(
+                $point
+            );
+
             $parts[] = $this->generateCoordinates($coordinates, $dimension);
         }
 
@@ -250,7 +286,9 @@ class Generator
 
     private function generatePolygon($polygon, $dimension)
     {
-        $lineStrings = $this->extractor->extractLineStringsFromPolygon($polygon);
+        $lineStrings = $this->extractor->extractLineStringsFromPolygon(
+            $polygon
+        );
 
         $parts = array();
         foreach ($lineStrings as $lineString) {
@@ -266,7 +304,9 @@ class Generator
 
     private function generateMultiPoint($multiPoint, $dimension)
     {
-        $points = $this->extractor->extractPointsFromMultiPoint($multiPoint);
+        $points = $this->extractor->extractPointsFromMultiPoint(
+            $multiPoint
+        );
 
         $parts = array();
         foreach ($points as $point) {
@@ -282,7 +322,9 @@ class Generator
 
     private function generateMultiLineString($multiLineString, $dimension)
     {
-        $lineStrings = $this->extractor->extractLineStringsFromMultiLineString($multiLineString);
+        $lineStrings = $this->extractor->extractLineStringsFromMultiLineString(
+            $multiLineString
+        );
 
         $parts = array();
         foreach ($lineStrings as $lineString) {
@@ -298,7 +340,9 @@ class Generator
 
     private function generateMultiPolygon($multiPolygon, $dimension)
     {
-        $polygons = $this->extractor->extractPolygonsFromMultiPolygon($multiPolygon);
+        $polygons = $this->extractor->extractPolygonsFromMultiPolygon(
+            $multiPolygon
+        );
 
         $parts = array();
         foreach ($polygons as $polygon) {
@@ -314,7 +358,9 @@ class Generator
 
     private function generateGeometryCollection($geometryCollection, $dimension)
     {
-        $geometries = $this->extractor->extractGeometriesFromGeometryCollection($geometryCollection);
+        $geometries = $this->extractor->extractGeometriesFromGeometryCollection(
+            $geometryCollection
+        );
 
         $parts = array();
         foreach ($geometries as $geometry) {
