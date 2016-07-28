@@ -26,10 +26,5 @@
         "psr-4": {
             "GeoIO\\WKT\\Generator\\": "src/"
         }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
-        }
     }
 }
