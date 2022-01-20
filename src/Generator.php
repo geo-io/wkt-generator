@@ -1,88 +1,89 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GeoIO\WKT\Generator;
 
+use Exception;
+use GeoIO\Coordinates;
 use GeoIO\Dimension;
 use GeoIO\Extractor;
+use GeoIO\GeometryType;
 use GeoIO\WKT\Generator\Exception\GeneratorException;
 use GeoIO\WKT\Generator\Exception\InvalidOptionException;
 
-class Generator
+final class Generator
 {
     /**
      * SFS 1.1 WKT (i.e. no Z or M markers in the tags) but with Z and/or M
      * values added in if they are present.
      */
-    const FORMAT_WKT11 = 'wkt11';
+    public const FORMAT_WKT11 = 'wkt11';
 
     /**
      * SFS 1.1 WKT with Z and M dropped from the output (since WKT strictly
      * does not support the Z or M dimensions).
      */
-    const FORMAT_WKT11_STRICT = 'wkt11_strict';
+    public const FORMAT_WKT11_STRICT = 'wkt11_strict';
 
     /**
      * SFS 1.2 WKT with Z, M and ZM markers in a separate token.
      */
-    const FORMAT_WKT12 = 'wkt12';
+    public const FORMAT_WKT12 = 'wkt12';
 
     /**
      * PostGIS EWKT extension with M marker appended to tag names if M but not
      * Z is present.
      */
-    const FORMAT_EWKT = 'ewkt';
+    public const FORMAT_EWKT = 'ewkt';
 
     /**
      * Change all letters in the output to UPPER CASE.
      */
-    const CASE_UPPER = 'uppercase';
+    public const CASE_UPPER = 'uppercase';
 
     /**
      * Change all letters to lower case.
      */
-    const CASE_LOWER = 'lowercase';
+    public const CASE_LOWER = 'lowercase';
 
     /**
      * No case changes from the default (which is not specified exactly, but is
      * chosen by the generator to emphasize readability).
      */
-    const CASE_NOACTION = null;
+    public const CASE_NOACTION = null;
 
-    private $extractor;
+    private Extractor $extractor;
 
-    private $sprintfFormat = '%F';
+    private string $sprintfFormat = '%F';
 
-    private $options = array(
+    private array $options = [
         'format' => self::FORMAT_WKT11,
         'emit_srid' => false, // Available only if format is FORMAT_EWKT
         'case' => self::CASE_NOACTION,
         'float_precision' => 6, // PHP default
-    );
+    ];
 
-    public function __construct(Extractor $extractor, array $options = array())
-    {
+    public function __construct(
+        Extractor $extractor,
+        array $options = [],
+    ) {
         $this->extractor = $extractor;
 
         if (isset($options['format'])) {
-            switch ($options['format']) {
-                case self::FORMAT_WKT11:
-                case self::FORMAT_WKT11_STRICT:
-                case self::FORMAT_WKT12:
-                case self::FORMAT_EWKT:
-                    $this->options['format'] = $options['format'];
-                    break;
-                default:
-                    throw InvalidOptionException::create(
-                        'format',
-                        $options['format'],
-                        array(
-                            self::FORMAT_WKT11,
-                            self::FORMAT_WKT11_STRICT,
-                            self::FORMAT_WKT12,
-                            self::FORMAT_EWKT
-                        )
-                    );
-            }
+            $this->options['format'] = match ($options['format']) {
+                self::FORMAT_WKT11, self::FORMAT_WKT11_STRICT, self::FORMAT_WKT12, self::FORMAT_EWKT => $options['format'],
+                default => throw InvalidOptionException::create(
+                    'format',
+                    $options['format'],
+                    [
+                        self::FORMAT_WKT11,
+                        self::FORMAT_WKT11_STRICT,
+                        self::FORMAT_WKT12,
+                        self::FORMAT_EWKT,
+                    ],
+                ),
+            };
         }
 
         if (
@@ -93,34 +94,29 @@ class Generator
         }
 
         if (isset($options['case'])) {
-            switch ($options['case']) {
-                case self::CASE_UPPER:
-                case self::CASE_LOWER:
-                case self::CASE_NOACTION:
-                    $this->options['case'] = $options['case'];
-                    break;
-                default:
-                    throw InvalidOptionException::create(
-                        'case',
-                        $options['case'],
-                        array(
-                            self::CASE_UPPER,
-                            self::CASE_LOWER,
-                            self::CASE_NOACTION
-                        )
-                    );
-            }
+            $this->options['case'] = match ($options['case']) {
+                self::CASE_UPPER, self::CASE_LOWER, self::CASE_NOACTION => $options['case'],
+                default => throw InvalidOptionException::create(
+                    'case',
+                    $options['case'],
+                    [
+                        self::CASE_UPPER,
+                        self::CASE_LOWER,
+                        self::CASE_NOACTION,
+                    ],
+                ),
+            };
         }
 
         if (isset($options['float_precision'])) {
             $this->sprintfFormat = sprintf(
                 '%%.%dF',
-                (int) $options['float_precision']
+                (int) $options['float_precision'],
             );
         }
     }
 
-    public function generate($geometry)
+    public function generate(mixed $geometry): string
     {
         try {
             $str = '';
@@ -136,31 +132,28 @@ class Generator
 
             $str .= $this->generateGeometry($geometry, $dimension);
 
-            switch ($this->options['case']) {
-                case self::CASE_UPPER:
-                    $str = strtoupper($str);
-                    break;
-                case self::CASE_LOWER:
-                    $str = strtolower($str);
-                    break;
-            }
-
-            return $str;
-        } catch (\Exception $e) {
+            return match ($this->options['case']) {
+                self::CASE_UPPER => strtoupper($str),
+                self::CASE_LOWER => strtolower($str),
+                default => $str,
+            };
+        } catch (Exception $e) {
             throw new GeneratorException(
                 'Generation failed: ' . $e->getMessage(),
                 0,
-                $e
+                $e,
             );
         }
     }
 
-    private function generateGeometry($geometry, $dimension)
-    {
+    private function generateGeometry(
+        mixed $geometry,
+        Dimension $dimension,
+    ): string {
         $type = $this->extractor->extractType($geometry);
         $data = $this->generateGeometryData($type, $dimension, $geometry);
 
-        $str = $type;
+        $str = $type->value;
 
         if (self::FORMAT_WKT12 === $this->options['format']) {
             switch ($dimension) {
@@ -188,35 +181,33 @@ class Generator
         return $str . $data;
     }
 
-    private function generateGeometryData($type, $dimension, $geometry)
-    {
-        switch ($type) {
-            case Extractor::TYPE_POINT:
-                return $this->generatePoint($geometry, $dimension);
-            case Extractor::TYPE_LINESTRING:
-                return $this->generateLineString($geometry, $dimension);
-            case Extractor::TYPE_POLYGON:
-                return $this->generatePolygon($geometry, $dimension);
-            case Extractor::TYPE_MULTIPOINT:
-                return $this->generateMultiPoint($geometry, $dimension);
-            case Extractor::TYPE_MULTILINESTRING:
-                return $this->generateMultiLineString($geometry, $dimension);
-            case Extractor::TYPE_MULTIPOLYGON:
-                return $this->generateMultiPolygon($geometry, $dimension);
-            default:
-                return $this->generateGeometryCollection($geometry, $dimension);
-        }
+    private function generateGeometryData(
+        GeometryType $type,
+        Dimension $dimension,
+        mixed $geometry,
+    ): string {
+        return match ($type) {
+            GeometryType::POINT => $this->generatePoint($geometry, $dimension),
+            GeometryType::LINESTRING => $this->generateLineString($geometry, $dimension),
+            GeometryType::POLYGON => $this->generatePolygon($geometry, $dimension),
+            GeometryType::MULTIPOINT => $this->generateMultiPoint($geometry, $dimension),
+            GeometryType::MULTILINESTRING => $this->generateMultiLineString($geometry, $dimension),
+            GeometryType::MULTIPOLYGON => $this->generateMultiPolygon($geometry, $dimension),
+            default => $this->generateGeometryCollection($geometry, $dimension),
+        };
     }
 
-    private function generateCoordinates(array $coordinates, $dimension)
-    {
-        $x = isset($coordinates['x']) ? $coordinates['x'] : 0;
-        $y = isset($coordinates['y']) ? $coordinates['y'] : 0;
+    private function generateCoordinates(
+        ?Coordinates $coordinates,
+        Dimension $dimension,
+    ): string {
+        $x = $coordinates->x ?? 0.0;
+        $y = $coordinates->y ?? 0.0;
 
         $str = sprintf(
             $this->sprintfFormat . ' ' . $this->sprintfFormat,
             $x,
-            $y
+            $y,
         );
 
         if (
@@ -225,9 +216,8 @@ class Generator
                 Dimension::DIMENSION_3DZ === $dimension
             ) &&
             self::FORMAT_WKT11_STRICT !== $this->options['format']
-
         ) {
-            $z = isset($coordinates['z']) ? $coordinates['z'] : 0;
+            $z = $coordinates->z ?? 0.0;
             $str .= ' ' . sprintf($this->sprintfFormat, $z);
         }
 
@@ -237,19 +227,20 @@ class Generator
                 Dimension::DIMENSION_3DM === $dimension
             ) &&
             self::FORMAT_WKT11_STRICT !== $this->options['format']
-
         ) {
-            $m = isset($coordinates['m']) ? $coordinates['m'] : 0;
+            $m = $coordinates->m ?? 0.0;
             $str .= ' ' . sprintf($this->sprintfFormat, $m);
         }
 
         return $str;
     }
 
-    private function generatePoint($point, $dimension)
-    {
+    private function generatePoint(
+        mixed $point,
+        Dimension $dimension,
+    ): string {
         $coordinates = $this->extractor->extractCoordinatesFromPoint(
-            $point
+            $point,
         );
 
         if (!$coordinates) {
@@ -258,20 +249,24 @@ class Generator
 
         return sprintf(
             '(%s)',
-            $this->generateCoordinates($coordinates, $dimension)
+            $this->generateCoordinates($coordinates, $dimension),
         );
     }
 
-    private function generateLineString($lineString, $dimension)
-    {
+    private function generateLineString(
+        mixed $lineString,
+        Dimension $dimension,
+    ): string {
         $points = $this->extractor->extractPointsFromLineString(
-            $lineString
+            $lineString,
         );
 
-        $parts = array();
+        $parts = [];
+
+        /** @var mixed $point */
         foreach ($points as $point) {
             $coordinates = $this->extractor->extractCoordinatesFromPoint(
-                $point
+                $point,
             );
 
             $parts[] = $this->generateCoordinates($coordinates, $dimension);
@@ -284,13 +279,17 @@ class Generator
         return sprintf('(%s)', implode(', ', $parts));
     }
 
-    private function generatePolygon($polygon, $dimension)
-    {
+    private function generatePolygon(
+        mixed $polygon,
+        Dimension $dimension,
+    ): string {
         $lineStrings = $this->extractor->extractLineStringsFromPolygon(
-            $polygon
+            $polygon,
         );
 
-        $parts = array();
+        $parts = [];
+
+        /** @var mixed $lineString */
         foreach ($lineStrings as $lineString) {
             $parts[] = $this->generateLineString($lineString, $dimension);
         }
@@ -302,13 +301,17 @@ class Generator
         return sprintf('(%s)', implode(', ', $parts));
     }
 
-    private function generateMultiPoint($multiPoint, $dimension)
-    {
+    private function generateMultiPoint(
+        mixed $multiPoint,
+        Dimension $dimension,
+    ): string {
         $points = $this->extractor->extractPointsFromMultiPoint(
-            $multiPoint
+            $multiPoint,
         );
 
-        $parts = array();
+        $parts = [];
+
+        /** @var mixed $point */
         foreach ($points as $point) {
             $parts[] = $this->generatePoint($point, $dimension);
         }
@@ -320,13 +323,17 @@ class Generator
         return sprintf('(%s)', implode(', ', $parts));
     }
 
-    private function generateMultiLineString($multiLineString, $dimension)
-    {
+    private function generateMultiLineString(
+        mixed $multiLineString,
+        Dimension $dimension,
+    ): string {
         $lineStrings = $this->extractor->extractLineStringsFromMultiLineString(
-            $multiLineString
+            $multiLineString,
         );
 
-        $parts = array();
+        $parts = [];
+
+        /** @var mixed $lineString */
         foreach ($lineStrings as $lineString) {
             $parts[] = $this->generateLineString($lineString, $dimension);
         }
@@ -338,13 +345,17 @@ class Generator
         return sprintf('(%s)', implode(', ', $parts));
     }
 
-    private function generateMultiPolygon($multiPolygon, $dimension)
-    {
+    private function generateMultiPolygon(
+        mixed $multiPolygon,
+        Dimension $dimension,
+    ): string {
         $polygons = $this->extractor->extractPolygonsFromMultiPolygon(
-            $multiPolygon
+            $multiPolygon,
         );
 
-        $parts = array();
+        $parts = [];
+
+        /** @var mixed $polygon */
         foreach ($polygons as $polygon) {
             $parts[] = $this->generatePolygon($polygon, $dimension);
         }
@@ -356,13 +367,17 @@ class Generator
         return sprintf('(%s)', implode(', ', $parts));
     }
 
-    private function generateGeometryCollection($geometryCollection, $dimension)
-    {
+    private function generateGeometryCollection(
+        mixed $geometryCollection,
+        Dimension $dimension,
+    ): string {
         $geometries = $this->extractor->extractGeometriesFromGeometryCollection(
-            $geometryCollection
+            $geometryCollection,
         );
 
-        $parts = array();
+        $parts = [];
+
+        /** @var mixed $geometry */
         foreach ($geometries as $geometry) {
             $parts[] = $this->generateGeometry($geometry, $dimension);
         }

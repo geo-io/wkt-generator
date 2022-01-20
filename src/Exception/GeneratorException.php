@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GeoIO\WKT\Generator\Exception;
 
-class GeneratorException extends \RuntimeException implements Exception {}
+use RuntimeException;
+
+class GeneratorException extends RuntimeException implements Exception
+{
+}
