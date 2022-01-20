@@ -2,7 +2,7 @@ Geo I/O WKT Generator
 =====================
 
 [![Build Status](https://github.com/geo-io/wkt-generator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/geo-io/wkt-generator/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/geo-io/wkt-generator/badge.svg?branch=master)](https://coveralls.io/github/geo-io/wkt-generator?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/geo-io/wkt-generator/badge.svg?branch=main)](https://coveralls.io/github/geo-io/wkt-generator?branch=main)
 
 Generates [Well-known text (WKT)](http://en.wikipedia.org/wiki/Well-known_text)
 representations from geometric objects.
