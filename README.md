@@ -1,7 +1,7 @@
 Geo I/O WKT Generator
 =====================
 
-[![Build Status](https://travis-ci.org/geo-io/wkt-generator.svg?branch=master)](https://travis-ci.org/geo-io/wkt-generator)
+[![Build Status](https://github.com/geo-io/wkt-generator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/geo-io/wkt-generator/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/geo-io/wkt-generator/badge.svg?branch=master)](https://coveralls.io/github/geo-io/wkt-generator?branch=master)
 
 Generates [Well-known text (WKT)](http://en.wikipedia.org/wiki/Well-known_text)
